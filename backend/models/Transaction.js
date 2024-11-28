@@ -2,7 +2,6 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const InventoryItem = require('./InventoryItem');
 const Batch = require('./Batch');
-const User = require('./User');
 
 const Transaction = sequelize.define('Transaction', {
   id: {
@@ -36,13 +35,6 @@ const Transaction = sequelize.define('Transaction', {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
   },
-  admin_id: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: User,
-      key: 'id'
-    }
-  },
   remarks: {
     type: DataTypes.TEXT
   }
@@ -60,10 +52,6 @@ const Transaction = sequelize.define('Transaction', {
     },
     {
       unique: false,
-      fields: ['admin_id'] // Regular index on admin_id
-    },
-    {
-      unique: false,
       fields: ['transaction_type'] // Regular index on transaction_type
     },
     {
@@ -75,6 +63,5 @@ const Transaction = sequelize.define('Transaction', {
 
 Transaction.belongsTo(InventoryItem, { foreignKey: 'inventory_item_id' });
 Transaction.belongsTo(Batch, { foreignKey: 'batch_id' });
-Transaction.belongsTo(User, { foreignKey: 'admin_id' });
 
 module.exports = Transaction;

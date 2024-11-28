@@ -25,6 +25,19 @@ const inventoryController = {
       });
     }
   },
+  async getAllDistinctItems(req, res) {
+    try {
+      const items = await inventoryService.getAllDistinctItems();
+      res.json({ success: true, data: items });
+    } catch (error) {
+      console.error('Error in getAllDictinctItems controller:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'An error occurred while fetching getAllDictinctItems controlller',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  },
 
   // Get inventory item by ID
   async getInventoryItemById(req, res) {
@@ -77,6 +90,20 @@ const inventoryController = {
       res.status(400).json({ success: false, error: error.message });
     }
   },
+  // Update an existing batch
+async updateBatch(req, res) {
+  try {
+    const updatedBatch = await inventoryService.updateBatch(req.params.id, req.body);
+    if (updatedBatch) {
+      res.json({ success: true, data: updatedBatch });
+    } else {
+      res.status(404).json({ success: false, error: 'Batch not found' });
+    }
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+},
+
 
 
   // Get low stock items
@@ -139,6 +166,14 @@ const inventoryController = {
       res.status(500).json({ success: false, error: error.message });
     }
   },
+  async getAllTransactions(req, res) {
+    try {
+      const transactions = await inventoryService.getAllTransactions();
+      res.json({ success: true, data: transactions });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  },
 
   // Get category by ID
   async getCategoryById(req, res) {
@@ -179,6 +214,20 @@ const inventoryController = {
       }
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
+    }
+  },
+  async getYearlyReport (req, res) {
+    try {
+      const { year } = req.query;
+      if (!year) {
+        return res.status(400).json({ success: false, message: 'Year is required.' });
+      }
+  
+      const reportData = await getYearlyInventoryReport(year);
+      res.json({ success: true, data: reportData });
+    } catch (error) {
+      console.error('Error fetching yearly report:', error);
+      res.status(500).json({ success: false, message: 'Internal server error.' });
     }
   }
 };
