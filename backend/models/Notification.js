@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const InventoryItem = require('./InventoryItem');
 const Batch = require('./Batch');
 
 const Notification = sequelize.define('Notification', {
@@ -12,13 +11,6 @@ const Notification = sequelize.define('Notification', {
   notification_type: {
     type: DataTypes.ENUM('LOW_STOCK', 'EXPIRED'),
     allowNull: false
-  },
-  inventory_item_id: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: InventoryItem,
-      key: 'id'
-    }
   },
   batch_id: {
     type: DataTypes.INTEGER,
@@ -43,36 +35,9 @@ const Notification = sequelize.define('Notification', {
   }
 }, {
   tableName: 'notifications',
-  timestamps: false,
-  indexes: [
-    {
-      unique: false,
-      fields: ['notification_type'] // Index for filtering by notification type
-    },
-    {
-      unique: false,
-      fields: ['inventory_item_id'] // Index for joins and lookups on inventory_item_id
-    },
-    {
-      unique: false,
-      fields: ['batch_id'] // Index for joins and lookups on batch_id
-    },
-    {
-      unique: false,
-      fields: ['expiry_date'] // Index for querying by expiry date
-    },
-    {
-      unique: false,
-      fields: ['seen'] // Index for filtering by unseen notifications
-    },
-    {
-      unique: false,
-      fields: ['created_at'] // Index for sorting/filtering by creation time
-    }
-  ]
+  timestamps: false
 });
 
-Notification.belongsTo(InventoryItem, { foreignKey: 'inventory_item_id' });
-Notification.belongsTo(Batch, { foreignKey: 'batch_id' });
+Notification.belongsTo(Batch, { foreignKey: 'batch_id', as: 'batch' });
 
 module.exports = Notification;

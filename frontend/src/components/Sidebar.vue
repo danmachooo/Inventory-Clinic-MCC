@@ -11,7 +11,7 @@
           <SidebarLink icon="Layers" to="/batch-management">Batch Management</SidebarLink>
           <SidebarLink icon="FileText" to="/transactions">Transactions / Audit Log</SidebarLink>
           <SidebarLink icon="BarChart2" to="/reports">Reports</SidebarLink>
-          <SidebarLink icon="Settings" to="/settings">Settings</SidebarLink>
+          <!-- <SidebarLink icon="Settings" to="/settings">Settings</SidebarLink> -->
           <SidebarLink icon="Bell" to="/notifications">Notifications</SidebarLink>
         </nav>
       </div>

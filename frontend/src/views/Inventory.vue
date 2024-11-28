@@ -112,6 +112,9 @@
                     <button @click="editItem(item)" class="text-blue-600 hover:text-blue-900">
                       <EditIcon class="w-5 h-5" />
                     </button>
+                    <button @click="openReduceStockModal(item)" class="text-red-600 hover:text-red-900">
+                      <MinusIcon class="w-5 h-5" />
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -174,7 +177,7 @@
                 </div>
                 <div>
                   <label for="quantityInStock" class="block text-sm font-medium text-gray-700">Quantity in Stock</label>
-                  <input type="number" id="quantityInStock" v-model="currentItem.quantity_in_stock" required min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                  <input type="number" readonly id="quantityInStock" v-model="currentItem.quantity_in_stock" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
                 </div>
                 <div>
                   <label for="minStockLevel" class="block text-sm font-medium text-gray-700">Min Stock Level</label>
@@ -197,12 +200,41 @@
           </div>
         </div>
       </div>
+
+      <div v-if="showReduceStockModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+          <div class="p-6">
+            <h2 class="text-2xl font-bold mb-4">Reduce Stock</h2>
+            <form @submit.prevent="reduceStock">
+              <div class="space-y-4">
+                <div>
+                  <label for="reduceQuantity" class="block text-sm font-medium text-gray-700">Quantity to Reduce</label>
+                  <input
+                    type="number"
+                    id="reduceQuantity"
+                    v-model="reduceQuantity"
+                    required
+                    min="1"
+                    max="currentItem.quantity_in_stock"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+                  />
+                </div>
+              </div>
+              <div class="mt-6 flex justify-end space-x-3">
+                <button type="button" @click="closeReduceStockModal" class="btn-secondary">Cancel</button>
+                <button type="submit" class="btn-primary">Reduce</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
     </div>
   </template>
 
   <script setup>
   import { ref, computed, onMounted, watch } from 'vue'
-  import { PlusIcon, UploadIcon, EditIcon, SearchIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-vue-next'
+  import { MinusIcon, PlusIcon, UploadIcon, EditIcon, SearchIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-vue-next'
   import axios from 'axios'
   import debounce from 'lodash/debounce'
 
@@ -462,8 +494,50 @@ const submitNewCategory = async () => {
     }
     return filtered
   })
+
+
+  const showReduceStockModal = ref(false);
+  const reduceQuantity = ref(0);
+
+  const openReduceStockModal = (item) => {
+    currentItem.value = { ...item };
+    reduceQuantity.value = 0;
+    showReduceStockModal.value = true;
+  };
+
+  const closeReduceStockModal = () => {
+    showReduceStockModal.value = false;
+    currentItem.value = {
+      name: '',
+      description: '',
+      category_id: null,
+      quantity_in_stock: 0,
+      min_stock_level: 0,
+      unit_price: 0,
+      reorder_level: 0,
+    };
+  };
+
+  const reduceStock = async () => {
+    try {
+      const response = await axios.post(`${API_URL}/items/${currentItem.value.id}/reduce-stock`, {
+        quantity: parseInt(reduceQuantity.value),
+      });
+
+      if (response.data.success) {
+        alert('Stock reduced successfully!');
+        closeReduceStockModal();
+        fetchItems();
+      } else {
+        alert('Failed to reduce stock. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error reducing stock:', error);
+      alert('An error occurred while reducing stock.');
+    }
+  };
+
   </script>
-w
 
   <style scoped>
   .btn-primary {
