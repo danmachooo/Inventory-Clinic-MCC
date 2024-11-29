@@ -6,8 +6,6 @@ const _ = require('./config/database'); // Import the database setup function
 const inventoryRoutes = require('./routes/inventoryRoutes');
 const authRoutes = require('./routes/authRoutes');
 
-
-
 const app = express();
 
 // Middlewares

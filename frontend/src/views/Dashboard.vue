@@ -60,13 +60,15 @@
         <div class="space-y-4">
           <div v-for="notification in notifications" :key="notification.id" 
                class="p-4 rounded-lg"
-               :class="{ 'bg-yellow-100': notification.notification_type === 'LOW_STOCK',
-                        'bg-red-100': notification.notification_type === 'EXPIRED' }">
+               :class="getNotificationClass(notification.notification_type)">
             <h3 class="font-semibold text-gray-800">
-              {{ notification.notification_type === 'LOW_STOCK' ? 'Low Stock Alert' : 'Item Expired' }}
+              {{ getNotificationTitle(notification) }}
             </h3>
             <p class="text-gray-600">
-              {{ getNotificationDescription(notification) }}
+              {{ notification.message }}
+            </p>
+            <p class="text-sm text-gray-500 mt-2">
+              {{ formatDate(notification.created_at) }}
             </p>
           </div>
         </div>
@@ -76,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 import DashboardCard from '../components/DashboardCard.vue'
 
@@ -86,6 +88,8 @@ const expiringCount = ref(0)
 const recentTransactions = ref([])
 const notifications = ref([])
 const API_URL = 'http://localhost:5000/api/inventory'
+const pollingInterval = ref(5000) 
+let pollingTimer = null
 
 const fetchDashboardData = async () => {
   try {
@@ -107,6 +111,17 @@ const fetchDashboardData = async () => {
   }
 }
 
+const startPolling = () => {
+  fetchDashboardData() // Fetch immediately
+  pollingTimer = setInterval(fetchDashboardData, pollingInterval.value)
+}
+
+const stopPolling = () => {
+  if (pollingTimer) {
+    clearInterval(pollingTimer)
+  }
+}
+
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -115,21 +130,31 @@ const formatDate = (dateString) => {
   })
 }
 
-const getNotificationDescription = (notification) => {
-  if (!notification.batch) return 'Details unavailable'
-
-  const itemName = notification.batch.inventoryItem?.name || 'Unknown Item'
-  const batchNumber = notification.batch.batch_number || 'Unknown Batch'
-
-  switch (notification.notification_type) {
-    case 'LOW_STOCK':
-      return `Batch ${batchNumber} of ${itemName} is running low. Current stock: ${notification.quantity_left || 'Unknown'}`
-    case 'EXPIRED':
-      return `Batch ${batchNumber} of ${itemName} has expired on ${formatDate(notification.expiry_date)}`
-    default:
-      return 'Please check your inventory'
+const getNotificationClass = (type) => {
+  const classes = {
+    'LOW_STOCK': 'bg-yellow-100',
+    'EXPIRED': 'bg-red-100',
+    'SOON_EXPIRING': 'bg-blue-100',
+    'REORDER': 'bg-green-100'
   }
+  return classes[type] || 'bg-gray-100'
 }
 
-onMounted(fetchDashboardData)
+const getNotificationTitle = (notification) => {
+  const titles = {
+    'LOW_STOCK': 'Low Stock Alert',
+    'EXPIRED': 'Batch Expired',
+    'SOON_EXPIRING': 'Batch Expiring Soon',
+    'REORDER': 'Reorder Required'
+  }
+  return titles[notification.notification_type] || 'Notification'
+}
+
+onMounted(() => {
+  startPolling()
+})
+
+onUnmounted(() => {
+  stopPolling()
+})
 </script>

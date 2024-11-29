@@ -24,14 +24,16 @@ const inventoryService = {
           model: Batch,
           as: 'batches', // Make sure this alias matches the one in your InventoryItem model
           attributes: ['id', 'batch_number', 'quantity', 'expiry_date', 'supplier', 'received_date'],
-          where: { is_active: true },
+          where: { is_active: true },  // Ordering by 'created_at' in descending order
+
           required: false
         }],
-        where: { is_active: true }
+        where: { is_active: true }, order: [['id', 'DESC']],
+
       });
     } catch (error) {
       console.error('Error in getAllInventoryItems:', error);
-      throw error;
+      throw error;  
     }
   },
 
@@ -123,6 +125,31 @@ const inventoryService = {
     }
     return null;
   },
+  async disposeBatch(id) {
+    const batch = await Batch.findByPk(id);
+    if (batch) {
+      await batch.update({ is_active: false });
+      
+      // Update the inventory item quantity
+      const inventoryItem = await InventoryItem.findByPk(batch.inventory_item_id);
+      if (inventoryItem) {
+        const newQuantity = inventoryItem.quantity_in_stock - batch.quantity;
+        await inventoryItem.update({ quantity_in_stock: newQuantity });
+      }
+
+      // Log the transaction
+      await Transaction.create({
+        inventory_item_id: batch.inventory_item_id,
+        batch_id: batch.id,
+        transaction_type: 'DISPOSE',
+        quantity_change: -batch.quantity,
+        remarks: `Batch ${batch.batch_number} disposed`
+      });
+
+      return batch;
+    }
+    return null;
+  },
 
 
   
@@ -136,17 +163,94 @@ const inventoryService = {
       { where: { id: inventoryItemId } }
     );
   },
+  async getMonthlyReport(year, month) {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+
+    return this.getReportData(startDate, endDate);
+  },
+
+  async getYearlyReport(year) {
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31);
+
+    return this.getReportData(startDate, endDate);
+  },
+
+  async getReportData(startDate, endDate) {
+    try {
+      const transactions = await Transaction.findAll({
+        where: {
+          date: { [Op.between]: [startDate, endDate] },
+        },
+        include: [
+          { 
+            model: InventoryItem, 
+            attributes: ['name'],
+            required: true
+          },
+          { 
+            model: Batch, 
+            attributes: ['batch_number'],
+            required: false
+          },
+        ],
+        order: [['date', 'ASC']],
+      });
+
+      const reportData = transactions.reduce((acc, transaction) => {
+        const key = `${transaction.inventory_item_id}-${transaction.batch_id || 'no-batch'}`;
+        if (!acc[key]) {
+          acc[key] = {
+            itemName: transaction.InventoryItem.name,
+            batchName: transaction.Batch ? transaction.Batch.batch_number : 'N/A',
+            batchQuantity: 0,
+            totalDisbursed: 0,
+            totalRemaining: 0,
+          };
+        }
+
+        if (transaction.transaction_type === 'ADD') {
+          acc[key].batchQuantity += transaction.quantity_change;
+        } else if (transaction.transaction_type === 'REMOVE') {
+          acc[key].totalDisbursed += Math.abs(transaction.quantity_change);
+        }
+
+        acc[key].totalRemaining = acc[key].batchQuantity - acc[key].totalDisbursed;
+
+        return acc;
+      }, {});
+
+      return Object.values(reportData);
+    } catch (error) {
+      console.error('Error generating report data:', error);
+      throw new Error('Failed to generate report data');
+    }
+  },
+
+
 
   // Get low stock items
   async getLowStockItems() {
-    return await InventoryItem.findAll({
-      where: {
-        [Op.and]: [
-          Sequelize.literal('quantity_in_stock <= min_stock_level'),
-          { is_active: true }
-        ]
-      }
-    });
+    try {
+      return await InventoryItem.findAll({
+        where: {
+          [Op.and]: [
+            Sequelize.literal('quantity_in_stock <= min_stock_level'),
+            { is_active: true }
+          ]
+        },
+        include: [{ 
+          model: Batch, 
+          as: 'batches',  // Add this line to specify the alias
+          where: { is_active: true }, 
+          required: false 
+        }],
+      });
+    } catch (error) {
+      console.error('Error fetching low stock items:', error);
+      throw new Error('Failed to fetch low stock items');
+    }
   },
 
   // Get expiring batches
@@ -183,13 +287,17 @@ const inventoryService = {
       include: [{ 
         model: Batch, 
         as: 'batch',
+        attributes: ['batch_number'], 
         include: [{
           model: InventoryItem,
           as: 'inventoryItem',
           attributes: ['name']
         }]
       }],
-      order: [['created_at', 'DESC']]
+      order: [['created_at', 'DESC']],
+      where: {
+        seen: false
+      }
     });
   },
 
@@ -202,6 +310,23 @@ const inventoryService = {
     }
     return null;
   },
+  async markAllNotificationsAsSeen(type) {
+    try {
+      const whereClause = type && type !== 'ALL' ? { notification_type: type, seen: false } : { seen: false };
+      
+      const [updatedCount] = await Notification.update(
+        { seen: true },
+        { where: whereClause }
+      );
+  
+      return updatedCount;
+    } catch (error) {
+      console.error('Error marking all notifications as seen:', error);
+      throw error;
+    }
+  },
+  
+  
 
   async createLowStockNotification(batchId, quantityLeft) {
     return await Notification.create({
@@ -219,43 +344,50 @@ const inventoryService = {
     });
   },
 
-  async checkAndCreateNotifications() {
-    // Check for low stock batches
-    const lowStockBatches = await Batch.findAll({
-      where: {
-        quantity: {
-          [Op.lte]: Sequelize.col('inventoryItem.min_stock_level')
-        },
-        is_active: true
-      },
-      include: [{
-        model: InventoryItem,
-        as: 'inventoryItem'
-      }]
-    });
-
-    for (const batch of lowStockBatches) {
-      await this.createLowStockNotification(batch.id, batch.quantity);
-    }
-
-    // Check for expired batches
-    const currentDate = new Date();
-    const expiredBatches = await Batch.findAll({
-      where: {
-        expiry_date: {
-          [Op.lte]: currentDate
-        },
-        is_active: true
+  async checkAndCreateReorderNotifications() {
+    try {
+      // Find items that need to be reordered
+      const itemsToReorder = await InventoryItem.findAll({
+        where: {
+          quantity_in_stock: {
+            [Op.lte]: sequelize.col('reorder_level')
+          },
+          is_active: true
+        }
+      });
+  
+      console.log('Items to reorder:', itemsToReorder.length);
+  
+      for (const item of itemsToReorder) {
+        // Check if a reorder notification already exists for this item
+        const existingNotification = await Notification.findOne({
+          where: {
+            notification_type: 'REORDER',
+            inventory_item_id: item.id,
+            seen: false
+          }
+        });
+  
+        if (!existingNotification) {
+          // Create a new reorder notification
+          await Notification.create({
+            notification_type: 'REORDER',
+            inventory_item_id: item.id,
+            title: `Reorder Alert: ${item.name}`,
+            message: `The stock level for ${item.name} (${item.quantity_in_stock} units) has reached or fallen below the reorder level (${item.reorder_level} units). Please reorder this item.`,
+            quantity_left: item.quantity_in_stock
+          });
+  
+          console.log(`Created reorder notification for item: ${item.name}`);
+        }
       }
-    });
-
-    for (const batch of expiredBatches) {
-      await this.createExpiredNotification(batch.id, batch.expiry_date);
+  
+      console.log('Reorder notifications check completed.');
+    } catch (error) {
+      console.error('Error checking and creating reorder notifications:', error);
     }
-
-    console.log('Expired batches:', expiredBatches);
-
   },
+  
 
   // Add a new category
   async addCategory(categoryData) {
@@ -272,7 +404,7 @@ const inventoryService = {
       include: [
         {
           model: InventoryItem,
-          attributes: ['id', 'name'], // Only include `id` and `name` from InventoryItem
+          attributes: ['id', 'name', 'quantity_in_stock'], // Only include `id` and `name` from InventoryItem
         },
         {
           model: Batch,
@@ -305,49 +437,6 @@ const inventoryService = {
     return null;
   },
 
-
-async getTransactionsForYear (year) {
-  const startOfYear = new Date(`${year}-01-01`);
-  const endOfYear = new Date(`${year}-12-31`);
-
-  // Fetch transactions for the given year
-  const transactions = await Transaction.findAll({
-    where: {
-      date: { [Op.between]: [startOfYear, endOfYear] },
-    },
-    include: [
-      { model: InventoryItem, attributes: ['name'] },
-      { model: Batch, attributes: ['batch_number'] },
-    ],
-  });
-
-  // Aggregate the report data
-  const report = transactions.reduce((acc, transaction) => {
-    const key = `${transaction.inventory_item_id}-${transaction.batch_id}`;
-    if (!acc[key]) {
-      acc[key] = {
-        itemName: transaction.InventoryItem.name,
-        batchName: transaction.Batch.batch_number,
-        totalAdded: 0,
-        totalRemoved: 0,
-        netChange: 0,
-      };
-    }
-
-    if (transaction.transaction_type === 'ADD') {
-      acc[key].totalAdded += transaction.quantity_change;
-      acc[key].netChange += transaction.quantity_change;
-    } else if (transaction.transaction_type === 'REMOVE') {
-      acc[key].totalRemoved += transaction.quantity_change;
-      acc[key].netChange -= transaction.quantity_change;
-    }
-
-    return acc;
-  }, {});
-
-  // Convert the aggregated data to an array
-  return Object.values(report);
-  },
   async processExcelFile(filePath) {
     const workbook = xlsx.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
@@ -455,23 +544,40 @@ async getTransactionsForYear (year) {
     }
     return results;
   },
-  async reduceStock(itemId, quantity) {
+  async reduceStock(itemId, quantity, patientName) {
     const item = await InventoryItem.findByPk(itemId);
     if (!item) {
       return null;
     }
-  
+
     if (item.quantity_in_stock < quantity) {
       throw new Error('Insufficient stock to reduce.');
     }
-  
+
     const newQuantity = item.quantity_in_stock - quantity;
     await item.update({ quantity_in_stock: newQuantity });
-  
-    // Optionally, log the transaction
-    await logTransaction(itemId, null, 'REDUCE', -quantity, 'Stock reduced');
-  
+
+    // Create a transaction record
+    await Transaction.create({
+      inventory_item_id: itemId,
+      transaction_type: 'REMOVE',
+      quantity_change: quantity,
+      patient_name: patientName,
+      remarks: `Stock reduced. Disbursed to patient: ${patientName}`,
+    });
+
     return item;
+  },
+
+  async getItemHistory(itemId) {
+    return await Transaction.findAll({
+      where: {
+        inventory_item_id: itemId,
+        transaction_type: 'REMOVE'
+      },
+      attributes: ['id', 'date', 'quantity_change', 'patient_name'],
+      order: [['date', 'DESC']]
+    });
   }
   
 }

@@ -24,7 +24,7 @@ const Transaction = sequelize.define('Transaction', {
     }
   },
   transaction_type: {
-    type: DataTypes.ENUM('ADD', 'REMOVE', 'UPDATE', 'DELETE'),
+    type: DataTypes.ENUM('ADD', 'REMOVE', 'UPDATE', 'DISPOSE'),
     allowNull: false
   },
   quantity_change: {
@@ -37,7 +37,10 @@ const Transaction = sequelize.define('Transaction', {
   },
   remarks: {
     type: DataTypes.TEXT
-  }
+  },
+  patient_name: {
+    type: DataTypes.STRING(255)
+  },
 }, {
   tableName: 'transactions',
   timestamps: false,
@@ -57,7 +60,8 @@ const Transaction = sequelize.define('Transaction', {
     {
       unique: false,
       fields: ['date'] // Index for querying by date
-    }
+    },
+    
   ]
 });
 

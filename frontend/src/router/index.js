@@ -13,6 +13,7 @@ const routes = [
   { path: '/dashboard', component: Dashboard },
   { path: '/inventory', component: Inventory },
   { path: '/batch-management', component: BatchManagement },
+  { path: '/batch-management/:id', component: BatchManagement },
   { path: '/transactions', component: Transactions },
   { path: '/reports', component: Reports },
   { path: '/settings', component: Settings },
