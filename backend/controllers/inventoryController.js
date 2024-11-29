@@ -1,4 +1,6 @@
 const inventoryService = require('../services/inventoryService');
+const notificationEmitter = require('../events/notificationEmitter');
+
 
 const inventoryController = {
   // Add a new inventory item
@@ -85,6 +87,9 @@ const inventoryController = {
   async addBatch(req, res) {
     try {
       const newBatch = await inventoryService.addBatch(req.body);
+      notificationEmitter.emit('batchAddedOrUpdated', { action: 'add', batch: newBatch });
+      console.log('Emitting batchAddedOrUpdated event for batch:', newBatch || updatedBatch);
+
       res.status(201).json({ success: true, data: newBatch });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
@@ -94,6 +99,7 @@ const inventoryController = {
 async updateBatch(req, res) {
   try {
     const updatedBatch = await inventoryService.updateBatch(req.params.id, req.body);
+    notificationEmitter.emit('batchAddedOrUpdated', { action: 'update', batch: updatedBatch });
     if (updatedBatch) {
       res.json({ success: true, data: updatedBatch });
     } else {
@@ -202,6 +208,27 @@ async updateBatch(req, res) {
       res.status(400).json({ success: false, error: error.message });
     }
   },
+  async getNotifications(req, res) {
+    try {
+      const notifications = await inventoryService.getNotifications();
+      res.json({ success: true, data: notifications });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  },
+
+  async markAsSeen(req, res) {
+    try {
+      const updatedNotification = await inventoryService.markNotificationAsSeen(req.params.id);
+      if (updatedNotification) {
+        res.json({ success: true, data: updatedNotification });
+      } else {
+        res.status(404).json({ success: false, error: 'Notification not found' });
+      }
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  },
 
   // Soft delete category
   async softDeleteCategory(req, res) {
@@ -216,6 +243,7 @@ async updateBatch(req, res) {
       res.status(500).json({ success: false, error: error.message });
     }
   },
+
   async getYearlyReport (req, res) {
     try {
       const { year } = req.query;
@@ -223,13 +251,53 @@ async updateBatch(req, res) {
         return res.status(400).json({ success: false, message: 'Year is required.' });
       }
   
-      const reportData = await getYearlyInventoryReport(year);
+      const reportData = await inventoryService.getTransactionsForYear(year);
       res.json({ success: true, data: reportData });
     } catch (error) {
       console.error('Error fetching yearly report:', error);
       res.status(500).json({ success: false, message: 'Internal server error.' });
     }
+  },
+  async uploadExcel(req, res) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No file uploaded' });
+      }
+
+      const results = await inventoryService.processExcelFile(req.file.path);
+
+      res.json({
+        success: true,
+        message: 'File processed',
+        data: results
+      });
+    } catch (error) {
+      console.error('Error processing Excel file:', error);
+      res.status(500).json({ success: false, message: 'Error processing file', error: error.message });
+    }
+  },
+  async reduceStock(req, res) {
+    try {
+      const { id } = req.params;
+      const { quantity } = req.body;
+  
+      if (quantity <= 0) {
+        return res.status(400).json({ success: false, message: 'Quantity must be greater than zero.' });
+      }
+  
+      const updatedItem = await inventoryService.reduceStock(id, quantity);
+      if (updatedItem) {
+        res.json({ success: true, data: updatedItem });
+      } else {
+        res.status(404).json({ success: false, message: 'Item not found.' });
+      }
+    } catch (error) {
+      console.error('Error reducing stock:', error);
+      res.status(500).json({ success: false, message: 'Internal server error.' });
+    }
   }
+  
+
 };
 
 module.exports = inventoryController;

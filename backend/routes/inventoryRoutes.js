@@ -1,14 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const inventoryController = require('../controllers/inventoryController');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 // Inventory Item routes
 router.post('/items', inventoryController.addInventoryItem);
-router.get('/distinct', inventoryController.getAllDistinctItems);
 router.get('/items', inventoryController.getAllInventoryItems);
 router.get('/items/:id', inventoryController.getInventoryItemById);
 router.put('/items/:id', inventoryController.updateInventoryItem);
 router.delete('/items/:id', inventoryController.softDeleteInventoryItem);
+router.post('/items/:id/reduce-stock', inventoryController.reduceStock);
 
 // Batch routes
 router.post('/batches', inventoryController.addBatch);
@@ -25,6 +27,8 @@ router.get('/transactions', inventoryController.getAllTransactions);
 
 // Notification routes
 router.post('/notifications', inventoryController.createNotification);
+router.get('/notifications', inventoryController.getNotifications);
+router.patch('/notifications/:id', inventoryController.markAsSeen);
 
 // Category routes
 router.post('/categories', inventoryController.addCategory);
@@ -36,6 +40,10 @@ router.delete('/categories/:id', inventoryController.softDeleteCategory);
 
 //Reports
 router.get('/report', inventoryController.getYearlyReport);
+
+//excel upload
+router.post('/upload-excel', upload.single('file'), inventoryController.uploadExcel);
+
 
 module.exports = router;
 
