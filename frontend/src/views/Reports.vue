@@ -19,7 +19,7 @@
     </div>
 
     <!-- Report Table -->
-    <div v-if="reportData.length > 0" class="mt-8">
+    <div v-if="reportData.length > -1" class="mt-8">
       <h2 class="text-xl font-medium text-gray-700 mb-4">
         Inventory Report for {{ selectedYear }}
       </h2>

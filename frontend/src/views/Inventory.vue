@@ -113,7 +113,7 @@
                       <EditIcon class="w-5 h-5" />
                     </button>
                     <button @click="openReduceStockModal(item)" class="text-red-600 hover:text-red-900">
-                      <MinusIcon class="w-5 h-5" />
+                      <MinusIcon class="w-10 h-5" />
                     </button>
                   </td>
                 </tr>

@@ -1,12 +1,12 @@
 <template>
     <aside :class="[
-      'bg-gray-700 text-white w-64 flex-shrink-0 overflow-y-auto transition-all duration-300 ease-in-out',
+      'bg-green-950 text-white w-64 flex-shrink-0 overflow-y-auto transition-all duration-300 ease-in-out',
       { '-ml-64': !isOpen }
     ]">
       <div class="p-4">
         <h1 class="text-2xl font-bold mb-6">Clinic Inventory</h1>
         <nav>
-          <SidebarLink icon="LayoutDashboard" to="/">Dashboard</SidebarLink>
+          <SidebarLink icon="LayoutDashboard" to="/dashboard">Dashboard</SidebarLink>
           <SidebarLink icon="Package" to="/inventory">Inventory</SidebarLink>
           <SidebarLink icon="Layers" to="/batch-management">Batch Management</SidebarLink>
           <SidebarLink icon="FileText" to="/transactions">Transactions / Audit Log</SidebarLink>

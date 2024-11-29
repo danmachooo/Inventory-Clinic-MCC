@@ -1,8 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const _ = require('./config/database'); // Import the database setup function
 const inventoryRoutes = require('./routes/inventoryRoutes');
+const authRoutes = require('./routes/authRoutes');
+
 
 
 const app = express();
@@ -14,6 +17,7 @@ app.use(express.urlencoded({ extended: true }));  // For parsing application/x-w
 
 // Routes (You can add your routes here)
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/auth', authRoutes);
 
 
 // Start the server

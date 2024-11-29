@@ -6,9 +6,11 @@ import Transactions from '@/views/Transactions.vue'
 import Reports from '@/views/Reports.vue'
 import Settings from '@/views/Settings.vue'
 import Notifications from '@/views/Notifications.vue'
+import Login from '@/views/Login.vue';
 
 const routes = [
-  { path: '/', component: Dashboard },
+  { path: '/', component: Login },
+  { path: '/dashboard', component: Dashboard },
   { path: '/inventory', component: Inventory },
   { path: '/batch-management', component: BatchManagement },
   { path: '/transactions', component: Transactions },

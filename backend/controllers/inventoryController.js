@@ -100,8 +100,6 @@ async updateBatch(req, res) {
   try {
     const updatedBatch = await inventoryService.updateBatch(req.params.id, req.body);
     notificationEmitter.emit('batchAddedOrUpdated', { action: 'update', batch: updatedBatch });
-    console.log('Emitting batchAddedOrUpdated event for batch:', newBatch || updatedBatch);
-
     if (updatedBatch) {
       res.json({ success: true, data: updatedBatch });
     } else {
