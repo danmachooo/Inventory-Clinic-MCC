@@ -3,8 +3,8 @@ const transporter = require('../config/email');
 
 exports.sendVoucherEmail = async (recipientEmail, voucher) => {
   const mailOptions = {
-    from: '"Mindoro State University Clinic - Calapan Campus" mindorostateuniveristyclinic@gmail.com', // Sender address
-    to: recipientEmail, // Admin email
+    from: '"Mindoro State University Clinic - Calapan Campus" mindorostateuniveristyclinic@gmail.com',
+    to: recipientEmail,
     subject: 'Your Admin Voucher',
     text: `Hello, here is your admin voucher: ${voucher}`,
     html: `<p>Hello,</p><p>Here is your admin voucher: <strong>${voucher}</strong></p>`,

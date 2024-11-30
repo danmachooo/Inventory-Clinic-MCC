@@ -1,22 +1,33 @@
 <template>
     <div class="min-h-screen flex items-center justify-center bg-gray-100">
       <div class="w-full max-w-md bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-2xl font-bold text-gray-800 text-center mb-6">Inventory System Login</h2>
+        <h2 class="text-2xl font-bold text-gray-800 text-center mb-6">Admin Login</h2>
         <form @submit.prevent="handleLogin">
           <div class="mb-4">
-            <label for="voucher" class="block text-sm font-medium text-gray-700">Voucher Code</label>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
             <input
-              v-model="voucher"
-              type="text"
-              id="voucher"
-              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Enter voucher code"
+              v-model="email"
+              type="email"
+              id="email"
+              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+          <div class="mb-4">
+            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+            <input
+              v-model="password"
+              type="password"
+              id="password"
+              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+              placeholder="Enter your password"
               required
             />
           </div>
           <button
             type="submit"
-            class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
+            class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
           >
             Login
           </button>
@@ -26,38 +37,53 @@
   </template>
   
   <script setup>
-  import { ref } from "vue";
-  import { useRouter } from "vue-router";
+  import { ref, onMounted } from 'vue';
+  import { useRouter } from 'vue-router';
+  import { useAuthStore } from '@/store/authStore';
+  import Swal from 'sweetalert2';
+  import axios from 'axios';
   
-  const voucher = ref("");
+  const email = ref('');
+  const password = ref('');
   const router = useRouter();
+  const authStore = useAuthStore();
   
   const handleLogin = async () => {
     try {
-      const response = await fetch("/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ voucher: voucher.value }),
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
+        email: email.value,
+        password: password.value,
       });
   
-      const data = await response.json();
-  
-      if (response.ok) {
-        localStorage.setItem("authToken", data.token);
-        router.push("/dashboard"); // Redirect to the dashboard
-      } else {
-        alert(data.message || "Invalid voucher code");
-      }
+      authStore.login(response.data.token);
+      await Swal.fire({
+        icon: 'success',
+        title: 'Login Successful',
+        text: 'Welcome back!',
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      router.push('/dashboard');
     } catch (error) {
-      console.error("Login failed:", error);
-      alert("An error occurred. Please try again.");
+      console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: error.response?.data?.error || 'An error occurred. Please try again.',
+      });
     }
   };
+  
+  const checkAdminStatus = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/auth/has-admins');
+      if (response.data.hasAdminWithNullPassword) {
+        router.push('/voucher-login');
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+    }
+  };
+  
+  onMounted(checkAdminStatus);
   </script>
-  
-  <style>
-  /* Optional: Add custom styles if needed */
-  </style>
-  

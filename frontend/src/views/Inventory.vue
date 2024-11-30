@@ -104,7 +104,6 @@
                   {{ item.quantity_in_stock === 0 ? 'Out of Stock' : item.quantity_in_stock }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">{{ item.min_stock_level }}</td>
-                <td class="px-6 py-4 whitespace-nowrap">P{{ parseFloat(item.unit_price).toFixed(2) }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">{{ item.reorder_level }}</td>
                 <td class="px-6 py-4 whitespace-nowrap space-x-2">
                   <button @click="viewItem(item)" class="text-blue-600 hover:text-blue-900" title="View Item">
@@ -164,31 +163,27 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-4">
                 <div>
-                  <span class="font-medium text-gray-600">Name:</span> 
+                  <span class="font-medium text-gray-600 pr-4">Name:</span> 
                   <span class="text-gray-800">{{ currentItem.name }}</span>
                 </div>
                 <div>
-                  <span class="font-medium text-gray-600">Description:</span> 
+                  <span class="font-medium text-gray-600 pr-4">Description:</span> 
                   <span class="text-gray-800">{{ currentItem.description }}</span>
                 </div>
                 <div>
-                  <span class="font-medium text-gray-600">Category:</span> 
+                  <span class="font-medium text-gray-600 pr-4">Category:</span> 
                   <span class="text-gray-800">{{ getCategoryName(currentItem.category_id) }}</span>
                 </div>
                 <div>
-                  <span class="font-medium text-gray-600">Quantity in Stock:</span> 
+                  <span class="font-medium text-gray-600 pr-4">Quantity in Stock:</span> 
                   <span class="text-gray-800">{{ currentItem.quantity_in_stock }}</span>
                 </div>
                 <div>
-                  <span class="font-medium text-gray-600">Min Stock Level:</span> 
+                  <span class="font-medium text-gray-600 pr-4">Min Stock Level:</span> 
                   <span class="text-gray-800">{{ currentItem.min_stock_level }}</span>
                 </div>
                 <div>
-                  <span class="font-medium text-gray-600">Unit Price:</span> 
-                  <span class="text-gray-800">P{{ parseFloat(currentItem.unit_price).toFixed(2) }}</span>
-                </div>
-                <div>
-                  <span class="font-medium text-gray-600">Reorder Level:</span> 
+                  <span class="font-medium text-gray-600 pr-4">Reorder Level:</span> 
                   <span class="text-gray-800">{{ currentItem.reorder_level }}</span>
                 </div>
               </div>
@@ -228,7 +223,6 @@
           </div>
         </div>
       </div>
-
 
       <!-- Add/Edit Item Modal -->
       <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
@@ -381,7 +375,7 @@ const API_URL = 'http://localhost:5000/api/inventory' // Replace with your actua
 
 const items = ref([])
 const categories = ref([])
-const tableHeaders = ['Name', 'Description', 'Category', 'Quantity in Stock', 'Min Stock Level', 'Unit Price', 'Reorder Level']
+const tableHeaders = ['Name', 'Description', 'Category', 'Quantity in Stock', 'Min Stock Level', 'Reorder Level']
 
 const searchQuery = ref('')
 const selectedCategory = ref('')
@@ -389,6 +383,7 @@ const showAddModal = ref(false)
 const showViewModal = ref(false)
 const showReduceStockModal = ref(false)
 const showHistoryModal = ref(false)
+const showNewCategoryModal = ref(false)
 const currentItem = ref({})
 const reduceQuantity = ref(0)
 const patientName = ref('')
@@ -579,7 +574,6 @@ const closeModal = () => {
     category_id: null,
     quantity_in_stock: 0,
     min_stock_level: 0,
-    unit_price: 0,
     reorder_level: 0
   }
 }
@@ -592,7 +586,6 @@ const submitItem = async () => {
       category_id: parseInt(currentItem.value.category_id),
       quantity_in_stock: parseInt(currentItem.value.quantity_in_stock),
       min_stock_level: parseInt(currentItem.value.min_stock_level),
-      unit_price: parseFloat(currentItem.value.unit_price),
       reorder_level: parseInt(currentItem.value.reorder_level)
     }
 
@@ -775,7 +768,6 @@ const showErrorAlert = (title, message) => {
     confirmButtonColor: '#d33',
   })
 }
-
 </script>
 
 <style scoped>

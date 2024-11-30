@@ -133,6 +133,7 @@ const setFilter = (type) => {
 const disposeBatch = async (notification) => {
   try {
     await axios.post(`${API_URL}/batches/${notification.batch_id}/dispose`)
+    window.location.href = `/batch-management`
     await markAsSeen(notification.id)
   } catch (err) {
     console.error('Error disposing batch:', err)

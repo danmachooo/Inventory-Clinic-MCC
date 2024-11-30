@@ -15,7 +15,7 @@ router.get('/items/:id/history', inventoryController.getItemHistory);
 // Batch routes
 router.post('/batches', inventoryController.addBatch);
 router.put('/batches/:id', inventoryController.updateBatch);
-router.put('/batches/:id/dispose', inventoryController.disposeBatch);
+router.post('/batches/:id/dispose', inventoryController.disposeBatch);
 
 // Low stock and expiring items routes
 router.get('/low-stock', inventoryController.getLowStockItems);
