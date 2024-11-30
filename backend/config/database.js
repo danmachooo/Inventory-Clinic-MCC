@@ -25,7 +25,7 @@ const syncDatabase = async () => {
   } catch (error) {
       console.error('Error syncing database:', error);
   }
-};
+}; 
 
 
 // Call the authenticateDatabase function

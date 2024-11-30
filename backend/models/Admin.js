@@ -19,13 +19,6 @@ const Admin = sequelize.define('Admin', {
 }
 );
 
-  // Hash password before saving
-  Admin.beforeSave(async (admin) => {
-    if (admin.password) {
-      admin.password = await bcrypt.hash(admin.password, 10);
-    }
-  });
-
 
 module.exports = Admin;
 

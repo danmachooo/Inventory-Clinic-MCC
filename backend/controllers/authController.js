@@ -33,3 +33,12 @@ exports.login = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+exports.hasAdmin = async (req, res) => {
+  try {
+    const adminWithNullPassword = await authService.hasAdmin();
+    res.status(200).json({hasAdminWithNullPassword: !!adminWithNullPassword});
+  } catch (error) {
+    res.status(500).json({error: error.message});
+  }
+};

@@ -48,3 +48,20 @@ exports.authenticate = async (email, password) => {
 
   return { token, message: 'Login successful.' };
 };
+
+
+exports.hasAdmin = async () => {
+  try {
+    const admin = await Admin.findOne({
+      where: {
+        password: null // Check if password is null
+      }
+    });
+
+    // If an admin with a null password exists, return true, otherwise false
+    return admin;
+  } catch (error) {
+    console.error('Error:', error);
+    throw error; // Rethrow the error if something goes wrong
+  }
+};

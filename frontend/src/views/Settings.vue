@@ -1,87 +1,104 @@
 <template>
-  <div class="container mx-auto px-6 py-8">
-    <!-- Header Section -->
-    <h1 class="text-gray-700 text-3xl font-medium">Inventory Clinic Settings</h1>
-    <p class="mt-4 text-gray-600">
-      Manage your clinic's inventory preferences, track supplies, and configure notifications.
-    </p>
-
-    <!-- Inventory Management Section -->
-    <div class="mt-8">
-      <h2 class="text-gray-600 text-xl font-medium">Inventory Management</h2>
-      <p class="text-gray-500 mt-2">Monitor stock levels and reorder critical items.</p>
-      <div class="mt-4 bg-white shadow-md rounded-lg p-6">
-        <!-- Add functionality for inventory tracking here -->
-        <label class="block text-gray-700 font-medium" for="reorder-level">
-          Default Reorder Level:
-        </label>
-        <input
-          type="number"
-          id="reorder-level"
-          class="mt-2 w-full p-2 border border-gray-300 rounded-md"
-          placeholder="Enter default reorder threshold"
-        />
-
-        <div class="mt-4">
-          <button
-            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-          >
-            Save Settings
-          </button>
+  <div class="min-h-screen bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-6">Inventory Management Settings</h1>
+      
+      <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">General Settings</h2>
+        <div class="space-y-4">
+          <div>
+            <label for="lowStockThreshold" class="block text-sm font-medium text-gray-700">Low Stock Threshold</label>
+            <input type="number" id="lowStockThreshold" v-model="settings.lowStockThreshold" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+          </div>
+          <div>
+            <label for="expiryNotificationDays" class="block text-sm font-medium text-gray-700">Expiry Notification Days</label>
+            <input type="number" id="expiryNotificationDays" v-model="settings.expiryNotificationDays" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- Notifications Section -->
-    <div class="mt-8">
-      <h2 class="text-gray-600 text-xl font-medium">Notification Preferences</h2>
-      <p class="text-gray-500 mt-2">
-        Enable alerts for low stock, new arrivals, or expiration dates.
-      </p>
-      <div class="mt-4 bg-white shadow-md rounded-lg p-6">
-        <!-- Add notification toggle functionality -->
-        <label class="flex items-center">
-          <input
-            type="checkbox"
-            class="form-checkbox h-5 w-5 text-blue-600"
-          />
-          <span class="ml-2 text-gray-700">Enable Low Stock Alerts</span>
-        </label>
-        <label class="flex items-center mt-4">
-          <input
-            type="checkbox"
-            class="form-checkbox h-5 w-5 text-blue-600"
-          />
-          <span class="ml-2 text-gray-700">Notify About Expired Items</span>
-        </label>
-
-        <div class="mt-4">
-          <button
-            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-          >
-            Save Preferences
-          </button>
+      
+      <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Notification Preferences</h2>
+        <div class="space-y-4">
+          <div class="flex items-center">
+            <input type="checkbox" id="emailNotifications" v-model="settings.emailNotifications" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            <label for="emailNotifications" class="ml-2 block text-sm text-gray-900">Receive email notifications</label>
+          </div>
+          <div class="flex items-center">
+            <input type="checkbox" id="pushNotifications" v-model="settings.pushNotifications" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            <label for="pushNotifications" class="ml-2 block text-sm text-gray-900">Receive push notifications</label>
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- Other Options Section -->
-    <div class="mt-8">
-      <h2 class="text-gray-600 text-xl font-medium">Other Options</h2>
-      <p class="text-gray-500 mt-2">Additional inventory-related configurations.</p>
-      <div class="mt-4 bg-white shadow-md rounded-lg p-6">
-        <!-- Add functionality for additional configurations -->
-        <button
-          class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-        >
-          Export Inventory Report
-        </button>
-        <button
-          class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 ml-4"
-        >
-          Reset Inventory Data
+      
+      <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Report Generation</h2>
+        <div class="space-y-4">
+          <div>
+            <label for="defaultReportPeriod" class="block text-sm font-medium text-gray-700">Default Report Period</label>
+            <select id="defaultReportPeriod" v-model="settings.defaultReportPeriod" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+            </select>
+          </div>
+          <div class="flex items-center">
+            <input type="checkbox" id="autoGenerateReports" v-model="settings.autoGenerateReports" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            <label for="autoGenerateReports" class="ml-2 block text-sm text-gray-900">Auto-generate reports</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex justify-end">
+        <button @click="saveSettings" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+          Save Settings
         </button>
       </div>
     </div>
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { CheckIcon } from 'lucide-vue-next'
+
+const settings = ref({
+  lowStockThreshold: 10,
+  expiryNotificationDays: 30,
+  emailNotifications: true,
+  pushNotifications: false,
+  defaultReportPeriod: 'monthly',
+  autoGenerateReports: true
+})
+
+onMounted(async () => {
+  try {
+    const response = await fetch('http://localhost:3000/api/settings')
+    const data = await response.json()
+    if (data.success) {
+      settings.value = { ...settings.value, ...data.data }
+    }
+  } catch (error) {
+    console.error('Failed to fetch settings:', error)
+  }
+})
+
+const saveSettings = async () => {
+  try {
+    const response = await fetch('http://localhost:3000/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings.value)
+    })
+    const data = await response.json()
+    if (data.success) {
+      console.log('Settings saved successfully')
+    } else {
+      console.error('Failed to save settings:', data.error)
+    }
+  } catch (error) {
+    console.error('Error saving settings:', error)
+  }
+}
+</script>
