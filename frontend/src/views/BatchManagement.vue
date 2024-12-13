@@ -124,12 +124,12 @@
           <input
             v-model="password"
             type="password"
-            placeholder="Enter your password"
+            placeholder="Enter password"
             class="mt-4 w-full px-4 py-2 border rounded-md"
           />
           <div class="flex justify-end space-x-2 mt-4">
-            <button @click="confirmPassword" class="px-4 py-2 bg-blue-600 text-white rounded-md">Submit</button>
             <button @click="showPasswordModal = false" class="px-4 py-2 border rounded-md">Cancel</button>
+            <button @click="confirmPassword" class="px-4 py-2 bg-blue-600 text-white rounded-md">Confirm</button>
           </div>
         </div>
       </div>
@@ -252,7 +252,7 @@ const showDisposeModal = ref(false)
 const isSubmitting = ref(false)
 const isDisposing = ref(false)
 const selectedBatchId = ref(null)
-const email = ref(localStorage.getItem('email'))
+// const email = ref(localStorage.getItem('email'))
 const showPasswordModal = ref(false)
 const password = ref('')
 const actionAfterPassword = ref(null)
@@ -333,14 +333,14 @@ const fetchBatches = async () => {
   }
 }
 
-const checkAuth = async () => {
-  try {
-    const response = await axios.post(`${API_URL}/check-auth`, email.value);
-    return response.data.result;
-  } catch (error) {
-    console.error(error)
-  }
-}
+// const checkAuth = async () => {
+//   try {
+//     const response = await axios.post(`${API_URL}/check-auth`, email.value);
+//     return response.data.result;
+//   } catch (error) {
+//     console.error(error)
+//   }
+// }
 
 
 
@@ -380,7 +380,17 @@ const handleSubmit = async () => {
 }
 
 const editBatch = (batch) => {
-  actionPayload.value = batch
+  
+  currentBatch.value = {
+    id: batch.id,
+    inventory_item_id: batch.inventoryItem?.id || '',
+    batch_number: batch.batch_number,
+    quantity: batch.quantity,
+    expiry_date: batch.expiry_date ? new Date(batch.expiry_date).toISOString().split('T')[0] : '',
+    supplier: batch.supplier,
+    received_date: batch.received_date ? new Date(batch.received_date).toISOString().split('T')[0] : ''
+  }
+  
   promptPasswordBeforeAction('edit', batch)
 }
 

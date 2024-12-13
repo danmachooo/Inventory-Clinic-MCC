@@ -388,7 +388,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { PlusIcon, UploadIcon, EditIcon, SearchIcon, ChevronLeftIcon, ChevronRightIcon, EyeIcon, PackageOpenIcon, HistoryIcon } from 'lucide-vue-next'
+import { PlusIcon, UploadIcon, EditIcon, SearchIcon, ChevronLeftIcon, ChevronRightIcon, EyeIcon, PackageOpenIcon, HistoryIcon, Trash2Icon } from 'lucide-vue-next'
 import axios from 'axios'
 import debounce from 'lodash/debounce'
 import Swal from 'sweetalert2'
@@ -461,6 +461,8 @@ const paginatedHistory = computed(() => {
 })
   
 const editingItem = ref(null)
+
+
 
 // Pagination
 const itemsPerPage = 10
