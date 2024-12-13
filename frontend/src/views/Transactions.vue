@@ -191,7 +191,7 @@ const filteredTransactions = computed(() => {
       transaction.InventoryItem?.name.toLowerCase().includes(filters.value.search.toLowerCase()) ||
       (transaction.Batch?.batch_number && transaction.Batch.batch_number.toLowerCase().includes(filters.value.search.toLowerCase()));
     return matchesType && matchesDate && matchesSearch;
-  });
+  }).reverse();
 });
 
 const totalPages = computed(() => Math.ceil(filteredTransactions.value.length / itemsPerPage));
