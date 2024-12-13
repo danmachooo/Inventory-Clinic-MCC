@@ -4,7 +4,7 @@
     { '-ml-64': !isOpen }
   ]">
     <div class="p-4">
-      <div class="flex items-center space-x-2 mb-6">
+      <div class="flex items-center space-x-2 mb-6 ">
         <img src="@/assets/minsu.png" alt="Logo" class="w-10 h-10" />
         <h1 class="font-bold">Clinic Inventory</h1>
       </div>
