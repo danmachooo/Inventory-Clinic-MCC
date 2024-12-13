@@ -1,5 +1,8 @@
 <template>
-    <div class="min-h-screen flex items-center justify-center bg-gray-100">
+<div
+    class="min-h-screen flex items-center justify-center bg-cover bg-center"
+    :style="{ backgroundImage: `url(${require('@/assets/cover.png')})` }"
+  >
       <div class="w-full max-w-md bg-white rounded-lg shadow-md p-6">
         <h2 class="text-2xl font-bold text-gray-800 text-center mb-6">Admin Login</h2>
         <form @submit.prevent="handleLogin">
