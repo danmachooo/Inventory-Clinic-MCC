@@ -16,9 +16,14 @@ const Admin = sequelize.define('Admin', {
   voucher: {
     type: DataTypes.STRING,
   },
-}
-);
-
+}, {
+  indexes: [
+    {
+      unique: true, 
+      fields: ['email'], 
+    },
+  ],
+});
 
 module.exports = Admin;
 

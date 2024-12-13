@@ -51,7 +51,25 @@ const Notification = sequelize.define('Notification', {
   }
 }, {
   tableName: 'notifications',
-  timestamps: false
+  timestamps: false,
+  indexes: [
+    {
+      unique: false,
+      fields: ['notification_type'] 
+    },
+    {
+      unique: false,
+      fields: ['batch_id'] 
+    },
+    {
+      unique: false,
+      fields: ['inventory_item_id'] 
+    },
+    {
+      unique: false,
+      fields: ['created_at'] 
+    }
+  ]
 });
 
 Notification.belongsTo(Batch, { foreignKey: 'batch_id', as: 'batch' });

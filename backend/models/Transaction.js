@@ -47,21 +47,24 @@ const Transaction = sequelize.define('Transaction', {
   indexes: [
     {
       unique: false,
-      fields: ['inventory_item_id'] // Regular index on inventory_item_id
+      fields: ['inventory_item_id'] 
     },
     {
       unique: false,
-      fields: ['batch_id'] // Regular index on batch_id
+      fields: ['batch_id'] 
     },
     {
       unique: false,
-      fields: ['transaction_type'] // Regular index on transaction_type
+      fields: ['transaction_type'] 
     },
     {
       unique: false,
-      fields: ['date'] // Index for querying by date
+      fields: ['date'] 
     },
-    
+    {
+      unique: false,
+      fields: ['inventory_item_id', 'date'] 
+    }
   ]
 });
 

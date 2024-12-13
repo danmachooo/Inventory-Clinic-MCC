@@ -20,7 +20,7 @@ const Batch = sequelize.define(
     batch_number: {
       type: DataTypes.STRING(100),
       allowNull: false,
-      unique: true, // Ensure unique batch numbers
+      unique: true, 
     },
     quantity: {
       type: DataTypes.INTEGER,
@@ -46,19 +46,19 @@ const Batch = sequelize.define(
     indexes: [
       {
         unique: true,
-        fields: ['batch_number'], // Ensures each batch number is unique
+        fields: ['batch_number'], 
       },
       {
         unique: false,
-        fields: ['expiry_date'], // Optimizes queries that filter or sort by expiry date
+        fields: ['expiry_date'], 
       },
       {
         unique: false,
-        fields: ['received_date'], // Enhances queries sorted by or filtered on received date
+        fields: ['received_date'], 
       },
       {
         unique: false,
-        fields: ['is_active'], // Enables faster filtering of active or inactive batches
+        fields: ['is_active'], 
       },
     ],
   }

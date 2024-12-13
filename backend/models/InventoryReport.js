@@ -33,11 +33,19 @@ const InventoryReport = sequelize.define('InventoryReport', {
   indexes: [
     {
       unique: false,
-      fields: ['report_date'] // Index for filtering or sorting by report_date
+      fields: ['report_date'] 
     },
     {
       unique: false,
-      fields: ['generated_at'] // Index for sorting by when reports were generated
+      fields: ['generated_at'] 
+    },
+    {
+      unique: false,
+      fields: ['total_items'] 
+    },
+    {
+      unique: false,
+      fields: ['report_date', 'total_stock_value'] 
     }
   ]
 });

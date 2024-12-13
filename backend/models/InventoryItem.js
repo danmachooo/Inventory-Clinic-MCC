@@ -22,37 +22,37 @@ const InventoryItem = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: Category, // The model this column references
-        key: 'id', // The column in the referenced model
+        model: Category, 
+        key: 'id', 
       },
-      onDelete: 'CASCADE', // Delete associated inventory items if category is removed
+      onDelete: 'CASCADE', 
     },
     quantity_in_stock: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
       validate: {
-        min: 0, // Prevent negative stock quantities
+        min: 0, 
       },
     },
     min_stock_level: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
       validate: {
-        min: 0, // Prevent invalid stock level
+        min: 0, 
       },
     },
     unit_price: {
       type: DataTypes.DECIMAL(10, 2),
       defaultValue: 0.0,
       validate: {
-        min: 0, // Ensure prices are not negative
+        min: 0, 
       },
     },
     reorder_level: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
       validate: {
-        min: 0, // Avoid invalid reorder levels
+        min: 0, 
       },
     },
     is_active: {
@@ -66,23 +66,23 @@ const InventoryItem = sequelize.define(
     indexes: [
       {
         unique: false,
-        fields: ['name'], // Speeds up searches for items by name
+        fields: ['name'], 
       },
       {
         unique: false,
-        fields: ['category_id'], // Optimizes queries by category_id
+        fields: ['category_id'], 
       },
       {
         unique: false,
-        fields: ['is_active'], // Allows faster filtering of active/inactive items
+        fields: ['is_active'], 
       },
       {
         unique: false,
-        fields: ['quantity_in_stock'], // Enhances queries related to stock levels
+        fields: ['quantity_in_stock'], 
       },
       {
         unique: false,
-        fields: ['unit_price'], // Optimizes queries for price ranges
+        fields: ['unit_price'], 
       },
     ],
   }
@@ -93,13 +93,13 @@ InventoryItem.associate = (models) => {
   // Link InventoryItem to Category
   InventoryItem.belongsTo(models.Category, {
     foreignKey: 'category_id',
-    as: 'category', // Alias for easier reference in queries
+    as: 'category', 
   });
 
   // Link InventoryItem to Batches
   InventoryItem.hasMany(models.Batch, {
     foreignKey: 'inventory_item_id',
-    as: 'batches', // Alias for easier batch reference
+    as: 'batches', 
   });
 };
 

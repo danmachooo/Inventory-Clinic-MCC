@@ -18,7 +18,13 @@ const Setting = sequelize.define('Setting', {
   }
 }, {
   tableName: 'settings',
-  timestamps: true
+  timestamps: true,
+  indexes: [
+    {
+      unique: true,
+      fields: ['key'] 
+    }
+  ]
 });
 
 module.exports = Setting;
