@@ -223,6 +223,28 @@
           </div>
         </div>
       </div>
+      
+      <!--password in modal-->
+      <div v-if="showPasswordModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+      <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Authorized Person Only</h2> <br>
+      <input
+        type="password"
+        v-model="enteredPassword"
+        placeholder="Enter your password"
+        class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+      <div class="mt-4 flex justify-end space-x-2">
+      <button
+        @click="validatePassword"
+        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition">Submit
+      </button>
+      <button
+      @click="closePasswordModal"
+      class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md transition">Cancel
+      </button>
+      </div>
+      </div>
+      </div>
 
       <!-- Add/Edit Item Modal -->
       <div v-if="showAddModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
@@ -392,7 +414,39 @@ const newCategory = ref({
   name: '',
   description: ''
 })
+const showPasswordModal = ref(false)
+const enteredPassword = ref('')
+const correctPassword = 'asd' // Replace with your actual password or retrieve it securely.
 
+const validatePassword = () => {
+  if (enteredPassword.value === correctPassword) {
+    showPasswordModal.value = false
+    enteredPassword.value = ''
+
+    if (modalContext.value === 'edit-item') {
+      showAddModal.value = true // Open the edit item modal
+    } else if (modalContext.value === 'reduce-stock') {
+      showReduceStockModal.value = true // Open the reduce stock modal
+    }
+
+    modalContext.value = '' // Reset context after use
+  } else {
+    showErrorAlert('Invalid Password', 'The password you entered is incorrect.')
+  }
+}
+const modalContext = ref('') // Tracks the context for the password modal
+
+const openPasswordModal = (item, context) => {
+  currentItem.value = { ...item } // Store the item being acted upon
+  modalContext.value = context   // Set the context ('edit-item' or 'reduce-stock')
+  showPasswordModal.value = true
+  
+}
+const closePasswordModal = () => {
+  showPasswordModal.value = false
+  enteredPassword.value = '' // Clear password input
+  modalContext.value = ''    // Reset context
+}
 const historyItemsPerPage = 10
 const historyCurrentPage = ref(1)
 const historyTotalPages = computed(() => Math.ceil(itemHistory.value.length / historyItemsPerPage))
@@ -560,9 +614,10 @@ const goToPage = (page) => {
 }
 
 const editItem = (item) => {
-  editingItem.value = item
-  currentItem.value = { ...item }
-  showAddModal.value = true
+  // editingItem.value = item
+  // currentItem.value = { ...item }
+  // showAddModal.value = true
+  openPasswordModal(item, 'edit-item')
 }
 
 const closeModal = () => {
@@ -656,10 +711,7 @@ const closeViewModal = () => {
 }
 
 const openReduceStockModal = (item) => {
-  currentItem.value = { ...item }
-  reduceQuantity.value = 0
-  patientName.value = ''
-  showReduceStockModal.value = true
+  openPasswordModal(item, 'reduce-stock') // Pass 'reduce-stock' as the context
 }
 
 const closeReduceStockModal = () => {
@@ -768,6 +820,7 @@ const showErrorAlert = (title, message) => {
     confirmButtonColor: '#d33',
   })
 }
+
 </script>
 
 <style scoped>

@@ -117,6 +117,23 @@
       </div>
     </div>
 
+     <!-- Password Modal -->
+      <div v-if="showPasswordModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+          <h2 class="text-xl font-semibold mb-4 text-center">Authorized Person Only</h2>
+          <input
+            v-model="password"
+            type="password"
+            placeholder="Enter your password"
+            class="mt-4 w-full px-4 py-2 border rounded-md"
+          />
+          <div class="flex justify-end space-x-2 mt-4">
+            <button @click="confirmPassword" class="px-4 py-2 bg-blue-600 text-white rounded-md">Submit</button>
+            <button @click="showPasswordModal = false" class="px-4 py-2 border rounded-md">Cancel</button>
+          </div>
+        </div>
+      </div>
+
     <!-- Add/Edit Modal -->
     <div v-if="showAddModal || showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div class="bg-white rounded-lg p-6 w-full max-w-md">
@@ -235,6 +252,45 @@ const showDisposeModal = ref(false)
 const isSubmitting = ref(false)
 const isDisposing = ref(false)
 const selectedBatchId = ref(null)
+const email = ref(localStorage.getItem('email'))
+const showPasswordModal = ref(false)
+const password = ref('')
+const actionAfterPassword = ref(null)
+const actionPayload = ref(null)
+
+const confirmPassword = async () => {
+  try {
+
+    if (password.value === 'asd') { //change password
+      showPasswordModal.value = false
+      password.value = ''
+
+      // Proceed with the saved action
+      if (actionAfterPassword.value === 'edit') {
+        showEditModal.value = true
+      } else if (actionAfterPassword.value === 'dispose') {
+        showDisposeModal.value = true
+      }
+
+      actionAfterPassword.value = null
+      actionPayload.value = null
+    } else {
+      showErrorAlert('Error', 'Incorrect password')
+    }
+  } catch (error) {
+    console.error('Password verification failed:', error)
+    showErrorAlert('Error', 'Failed to verify password')
+  }
+}
+
+
+const promptPasswordBeforeAction = (action, payload) => {
+  actionAfterPassword.value = action
+  actionPayload.value = payload
+  showPasswordModal.value = true
+}
+
+
 
 const tableHeaders = ['Batch Number', 'Item', 'Quantity', 'Expiry Date', 'Supplier', 'Received Date', 'Status']
 
@@ -277,6 +333,17 @@ const fetchBatches = async () => {
   }
 }
 
+const checkAuth = async () => {
+  try {
+    const response = await axios.post(`${API_URL}/check-auth`, email.value);
+    return response.data.result;
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+
+
 const fetchInventoryItems = async () => {
   try {
     const response = await axios.get(`${API_URL}/items`)
@@ -313,41 +380,45 @@ const handleSubmit = async () => {
 }
 
 const editBatch = (batch) => {
-  currentBatch.value = { 
-    id: batch.id,
-    inventory_item_id: batch.inventoryItem?.id || '',
-    batch_number: batch.batch_number,
-    quantity: batch.quantity,
-    expiry_date: batch.expiry_date ? new Date(batch.expiry_date).toISOString().split('T')[0] : '',
-    supplier: batch.supplier,
-    received_date: batch.received_date ? new Date(batch.received_date).toISOString().split('T')[0] : ''
-  }
-  showEditModal.value = true
+  actionPayload.value = batch
+  promptPasswordBeforeAction('edit', batch)
 }
 
 const confirmDispose = (batch) => {
-  selectedBatchId.value = batch.id
-  showDisposeModal.value = true
-}
+  if (!batch || !batch.id) {
+    console.error('Invalid batch data:', batch);
+    showErrorAlert('Error', 'Invalid batch selected for disposal');
+    return;
+  }
+  selectedBatchId.value = batch.id; // Set the batch ID for disposal
+  promptPasswordBeforeAction('dispose', batch);
+};
 
 const handleDispose = async () => {
+  if (!selectedBatchId.value) {
+    console.error('No batch ID selected for disposal!');
+    showErrorAlert('Error', 'No batch selected for disposal.');
+    return;
+  }
+
   try {
-    isDisposing.value = true
-    const response = await axios.put(`${API_URL}/batches/${selectedBatchId.value}/dispose`)
+    isDisposing.value = true;
+    const response = await axios.put(`${API_URL}/batches/${selectedBatchId.value}/dispose`);
     if (response.data.success) {
-      await fetchBatches()
-      showDisposeModal.value = false
-      showSuccessAlert('Success', 'Batch disposed and inventory updated successfully')
+      await fetchBatches();
+      showDisposeModal.value = false;
+      showSuccessAlert('Success', 'Batch disposed and inventory updated successfully.');
     } else {
-      showErrorAlert('Error', response.data.error || 'Failed to dispose batch')
+      console.error('Error in response:', response.data);
+      showErrorAlert('Error', response.data.error || 'Failed to dispose batch.');
     }
   } catch (error) {
-    console.error('Error disposing batch:', error)
-    showErrorAlert('Error', 'Failed to dispose batch')
+    console.error('Error disposing batch:', error.response?.data || error.message);
+    showErrorAlert('Error', 'Failed to dispose batch.');
   } finally {
-    isDisposing.value = false
+    isDisposing.value = false;
   }
-}
+};
 
 const closeModal = () => {
   showAddModal.value = false
